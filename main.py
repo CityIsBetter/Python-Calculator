@@ -6,20 +6,34 @@ LARGE_FONT_STYLE = ("Arial", 40, "bold")
 DIGIT_FONT_STYLE = ("Arial", 24, "bold")
 DEFAULT_FONT_STYLE = ("Arial", 20)
 
-OFF_WHITE = '#f8f8ff'
-WHITE = "#ffffff"
-RED = "#F98B85"
+dark = False
+
+OFF_WHITE ='#f8f8ff' 
+WHITE = "#ffffff" 
+RED = "#FF4D4D"
 D_RED = "#C76F6A"
-LIGHT_BLUE = "#CCEDF5"
+LIGHT_BLUE = "#25A7DA"
 LIGHT_GRAY = "#f5f5f5"
 LABEL_COLOR = "#25265E"
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 class Calculator:
+    
     def __init__(self):
         self.window = tk.Tk()
         self.window.geometry("375x667")
 
         self.window.title("Python Calculator")
+        self.window.iconbitmap(resource_path('icon.ico'))
 
         self.total_expression = ""
         self.current_expression = ""
@@ -41,6 +55,7 @@ class Calculator:
         self.create_digit_buttons()
         self.create_operator_buttons()
         self.create_special_buttons()
+        self.menu()
         self.bind_keys()
 
     def bind_keys(self):
@@ -172,13 +187,60 @@ class Calculator:
     
     def create_equals_button(self):
         button = tk.Button(self.buttons_frame, text="=", bg=LIGHT_BLUE, fg=LABEL_COLOR, font=DEFAULT_FONT_STYLE, borderwidth=0, command=self.evaluate)
-        button.grid(row=5, column=3, columnspan=2, sticky=tk.NSEW)
+        button.grid(row=5, column=3, columnspan=2, sticky=tk.NSEW, padx=1, pady=1)
         
     def create_buttons_frame(self):
         frame = tk.Frame(self.window)
         frame.pack(expand=True, fill="both")
         return frame
+    
+    def set_light(self):
+        global dark, OFF_WHITE, WHITE, LIGHT_GRAY, LABEL_COLOR
+        OFF_WHITE ='#f8f8ff' 
+        WHITE = "#ffffff"
+        LIGHT_GRAY = "#f5f5f5"
+        LABEL_COLOR = "#25265E"
+        dark = False
+        self.create_special_buttons()
+        self.create_digit_buttons()
+        self.create_operator_buttons()
+        self.total_label.config(bg=LIGHT_GRAY, fg=LABEL_COLOR)
+        self.label.config(bg=LIGHT_GRAY, fg=LABEL_COLOR)
 
+    def set_dark(self):
+        global dark, OFF_WHITE, WHITE, LIGHT_GRAY, LABEL_COLOR
+        OFF_WHITE = "#383838"
+        WHITE = "#505050"
+        LIGHT_GRAY = "#202020"
+        LABEL_COLOR = "#eee"
+        dark = True
+        self.create_special_buttons()
+        self.create_digit_buttons()
+        self.create_operator_buttons()
+        self.total_label.config(bg=LIGHT_GRAY, fg=LABEL_COLOR)
+        self.label.config(bg=LIGHT_GRAY, fg=LABEL_COLOR)
+
+    def menu(self):
+        def toggle_menu():
+            def close_menu():
+                menu.destroy()
+                btn.config(text="≡")
+                btn.config(command=toggle_menu)
+
+            menu = tk.Frame(self.window, bg=LIGHT_GRAY)
+            menu.place(x=0, y=50, height=120, width=100)
+            Light_btn = tk.Button(menu, text="Light", font=DIGIT_FONT_STYLE, fg="#eee", bg=RED, activebackground=LIGHT_BLUE, borderwidth=0, command=self.set_light)
+            Light_btn.place(x=0, y=0)
+            Dark_btn = tk.Button(menu, text="Dark ", font=DIGIT_FONT_STYLE, fg="#eee", bg=RED, activebackground=LIGHT_BLUE, borderwidth=0, command= self.set_dark)
+            Dark_btn.place(x=0, y=60)
+
+            btn.config(text="X")
+            btn.config(command=close_menu)
+
+        btn = tk.Button(self.display_frame, text='≡',bg=LIGHT_BLUE, fg="#333", font=("Bold", 20), borderwidth=0, command=toggle_menu)
+        btn.pack(side=tk.LEFT)
+        btn.place(x=0, y=0)
+        
     def update_total_label(self):
         expression = self.total_expression
         for operator, symbol in self.operations.items():
